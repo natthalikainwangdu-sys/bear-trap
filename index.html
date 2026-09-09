@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bear Trap: รู้ทันภัยออนไลน์</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+:root{
+  --bg:#0b0d0f; --panel:#14181c; --panel2:#1a1f24; --text:#f2f4f5;
+  --muted:#8e979e; --accent:#d9ff3f; --danger:#ff4d4d; --line:#30363c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Kanit,system-ui,sans-serif;min-height:100vh}
+button{font:inherit}
+#app{min-height:100vh;position:relative;overflow:hidden}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.screen{display:none;min-height:100vh;padding:32px 20px;position:relative}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+#startScreen:before,#resultScreen:before{content:"";position:absolute;width:600px;height:600px;border:1px solid #23282d;border-radius:50%;opacity:.7}
+.logo-bear{font-size:90px;filter:grayscale(1);margin-bottom:5px}
+.eyebrow{font:700 12px 'Space Mono',monospace;letter-spacing:3px;color:var(--accent);margin:0 0 10px}
+h1{font-size:clamp(58px,13vw,110px);line-height:.8;margin:0;font-weight:800;letter-spacing:-5px}
+h1 span{color:var(--accent)}
+.tagline{color:var(--muted);font-size:18px;margin:22px 0 30px}
+.start-card{width:min(500px,100%);background:rgba(20,24,28,.94);border:1px solid var(--line);padding:28px;border-radius:18px;text-align:center;box-shadow:0 20px 80px #0008}
+.start-card p{line-height:1.7;color:#b9c0c5}
+.rules{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:22px 0;color:#cbd1d5;font-size:14px}
+.primary{border:0;background:var(--accent);color:#0a0c0e;font-weight:800;letter-spacing:1px;padding:15px 24px;border-radius:9px;cursor:pointer;transition:.2s;box-shadow:0 0 0 0 #d9ff3f55}
+.primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px #d9ff3f33}
+.primary span{margin-left:10px}
+
+#gameScreen{padding:0;justify-content:flex-start}
+.hud{width:100%;padding:18px 28px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 2fr 1fr;gap:25px;align-items:center;background:#0d1012}
+.hud small{font:700 10px 'Space Mono';letter-spacing:2px;color:var(--muted);display:block;margin-bottom:6px}
+.hud-item.score{text-align:right}.hud-item.score strong{font:700 20px 'Space Mono';color:var(--accent)}
+.progress-wrap{max-width:600px;width:100%;margin:auto}
+.progress{height:5px;background:#292f34;border-radius:10px;overflow:hidden}
+#progressBar{height:100%;width:5%;background:var(--accent);transition:.3s}
+main{width:min(1050px,100%);padding:25px 20px 50px;margin:auto}
+.battle{height:230px;display:flex;align-items:center;justify-content:center;gap:80px;position:relative}
+.fighter{display:flex;flex-direction:column;align-items:center;position:relative;min-width:150px}
+.fighter .emoji{font-size:100px;line-height:1;filter:grayscale(.25)}
+.fighter span{font:700 10px 'Space Mono';letter-spacing:2px;color:var(--muted);margin-top:10px}
+.fighter.bear .emoji{filter:grayscale(1)}
+.speech{position:absolute;top:-15px;right:-40px;background:#f2f4f5;color:#111;padding:7px 12px;border-radius:8px;font-size:13px;transform:rotate(-2deg);box-shadow:0 4px 15px #0006}
+.vs{font:800 24px 'Space Mono';color:#454c52}
+.question-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 20px 60px #0004}
+.category{display:inline-block;border:1px solid #495158;color:var(--accent);font:700 10px 'Space Mono';padding:6px 9px;border-radius:5px;letter-spacing:1px;margin-bottom:13px}
+.question-card h2{font-size:20px;line-height:1.65;font-weight:500;margin:0 0 22px;white-space:pre-line}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{background:var(--panel2);border:1px solid var(--line);color:#e6e9ea;padding:15px 16px;border-radius:10px;text-align:left;cursor:pointer;transition:.15s;font-size:15px;line-height:1.5}
+.choice:hover{border-color:#777f86;background:#20262b;transform:translateY(-1px)}
+.choice .letter{font:700 12px 'Space Mono';color:var(--accent);margin-right:9px}
+.choice:disabled{cursor:default}
+.choice.correct{border-color:var(--accent);background:#263016}
+.choice.wrong{border-color:var(--danger);background:#351b1b}
+
+#feedbackScreen{text-align:center}
+.feedback-icon{font:700 58px 'Space Mono';width:105px;height:105px;border-radius:50%;display:grid;place-items:center;margin-bottom:25px;background:#20270f;color:var(--accent);border:1px solid #536018}
+#feedbackScreen.wrong .feedback-icon{background:#301616;color:var(--danger);border-color:#6d2b2b}
+#feedbackTitle{font-size:38px;margin:0 0 22px}
+.feedback-card{width:min(680px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;text-align:left;padding:24px;margin-bottom:25px}
+.feedback-card h3{margin:0 0 10px;color:var(--accent)}
+.feedback-card p{line-height:1.8;color:#c6cdd1;margin:0}
+.real-life{margin-top:18px;padding:15px;background:#1b2024;border-left:3px solid var(--accent);line-height:1.7;color:#cbd1d5}
+.real-life b{color:var(--text)}
+
+.result-bear{font-size:90px;margin-bottom:10px}
+#resultTitle{font-size:46px;margin:0 0 20px}
+.final-score{border:1px solid var(--line);background:var(--panel);border-radius:15px;padding:20px 55px;text-align:center}
+.final-score small{display:block;color:var(--muted);font:700 10px 'Space Mono';letter-spacing:2px}
+.final-score strong{display:block;font:700 48px 'Space Mono';color:var(--accent);margin-top:8px}
+.stats{display:flex;gap:2px;margin:20px 0}
+.stats div{min-width:110px;padding:13px 18px;background:#15191d;border:1px solid var(--line);text-align:center}
+.stats b{display:block;font:700 22px 'Space Mono'}
+.stats span{font-size:12px;color:var(--muted)}
+#resultMessage{color:#b7bec3;margin:8px 0 25px}
+
+.attack-bear{animation:attackBear .45s ease}
+.attack-player{animation:hitPlayer .5s ease}
+.shake{animation:shake .45s ease}
+.flash{animation:flash .4s ease}
+@keyframes attackBear{50%{transform:translateX(70px) scale(1.08)}}
+@keyframes hitPlayer{20%{transform:translateX(35px) rotate(8deg)}40%{transform:translateX(-25px) rotate(-8deg)}60%{transform:translateX(15px)}}
+@keyframes shake{25%{transform:translate(7px)}50%{transform:translate(-7px)}75%{transform:translate(5px)}}
+@keyframes flash{50%{filter:brightness(2)}}
+@media(max-width:700px){
+  .hud{padding:14px 15px;grid-template-columns:auto 1fr auto;gap:12px}
+  .hud-item.score strong{font-size:15px}.hud-item.score small{font-size:8px}
+  .battle{height:190px;gap:25px}.fighter .emoji{font-size:76px}.speech{right:-45px;font-size:10px}
+  .question-card{padding:20px}.question-card h2{font-size:17px}.choices{grid-template-columns:1fr}
+  .start-card{padding:22px}
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="grain"></div>
+
+  <section id="startScreen" class="screen active">
+    <div class="logo-bear">🐻</div>
+    <p class="eyebrow">CYBER AWARENESS CHALLENGE</p>
+    <h1>BEAR <span>TRAP</span></h1>
+    <p class="tagline">รู้ทันภัยออนไลน์ ก่อนจะตกเป็นเหยื่อ</p>
+    <div class="start-card">
+      <p>หมีจะโยนสถานการณ์จริงมาให้คุณตัดสินใจ<br>อย่าเชื่อสิ่งที่เห็นทันที — <b>ตรวจสอบก่อนเสมอ</b></p>
+      <div class="rules">
+        <span>❤️ 5 HP</span><span>⚡ +500 ถูก</span><span>🔨 -100 ผิด</span>
+      </div>
+      <button id="startBtn" class="primary">START GAME <span>→</span></button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen">
+    <header class="hud">
+      <div class="hud-item"><small>HP</small><div id="hp">❤️❤️❤️❤️❤️</div></div>
+      <div class="progress-wrap"><small id="questionCount">QUESTION 01 / 20</small><div class="progress"><div id="progressBar"></div></div></div>
+      <div class="hud-item score"><small>SCORE</small><strong id="score">00000</strong></div>
+    </header>
+
+    <main>
+      <div id="battle" class="battle">
+        <div id="bear" class="fighter bear"><div class="speech" id="bearSpeech">ลองดูสิ...</div><div class="emoji">🐻</div><span>THE TRAPPER</span></div>
+        <div class="vs">VS</div>
+        <div id="player" class="fighter player"><div class="emoji">👩</div><span>YOU</span></div>
+      </div>
+
+      <article class="question-card">
+        <div class="category" id="category">PHISHING</div>
+        <h2 id="question"></h2>
+        <div id="choices" class="choices"></div>
+      </article>
+    </main>
+  </section>
+
+  <section id="feedbackScreen" class="screen">
+    <div id="feedbackIcon" class="feedback-icon">✓</div>
+    <p id="feedbackLabel" class="eyebrow"></p>
+    <h2 id="feedbackTitle"></h2>
+    <div class="feedback-card">
+      <h3>📖 ทำไม?</h3>
+      <p id="feedbackText"></p>
+      <div class="real-life"><b>ในชีวิตจริง:</b> <span id="realLife"></span></div>
+    </div>
+    <button id="nextBtn" class="primary">CONTINUE <span>→</span></button>
+  </section>
+
+  <section id="resultScreen" class="screen">
+    <div class="result-bear">🐻</div>
+    <p class="eyebrow">CHALLENGE COMPLETE</p>
+    <h2 id="resultTitle">TRAP MASTER</h2>
+    <div class="final-score"><small>FINAL SCORE</small><strong id="finalScore">0</strong></div>
+    <div class="stats">
+      <div><b id="correctCount">0</b><span>ถูก</span></div>
+      <div><b id="wrongCount">0</b><span>ผิด</span></div>
+      <div><b id="finalHp">0</b><span>HP เหลือ</span></div>
+    </div>
+    <p id="resultMessage"></p>
+    <button id="restartBtn" class="primary">PLAY AGAIN <span>↻</span></button>
+  </section>
+</div>
+<script>
+const questions = [
+{cat:"PHISHING",q:`คุณได้รับ SMS จากธนาคารว่า\n“ตรวจพบธุรกรรมผิดปกติ 9,850 บาท บัญชีอาจถูกระงับ กรุณายืนยันภายใน 15 นาที”\nข้อความมีโลโก้ธนาคารและลิงก์ไปยังเว็บหน้าตาเหมือนของจริง`,c:["กดลิงก์เพื่อตรวจสอบ เพราะยังไม่ได้กรอกข้อมูลใด ๆ","โทรหาเบอร์ธนาคารจากเว็บไซต์/แอปทางการ โดยไม่ใช้ข้อมูลจาก SMS","ตอบกลับ SMS เพื่อถามว่ารายการเกิดจากอะไร","แคปหน้าจอส่งให้เพื่อนที่ใช้ธนาคารเดียวกันดู"],a:1,f:`ชื่อ โลโก้ และหน้าตาเว็บไซต์สามารถปลอมได้ทั้งหมด สิ่งสำคัญคืออย่าใช้ช่องทางที่ข้อความนั้นเป็นคนกำหนดให้เรา`,`r:`เปิดแอปธนาคารเอง หรือใช้เบอร์จากเว็บไซต์/เอกสารทางการเพื่อตรวจสอบ`},
+{cat:"JOB SCAM",q:`คุณสมัครงาน “แอดมินตอบแชต” รายได้ 800–1,500 บาท/วัน\nหลังสัมภาษณ์ ผู้ว่าจ้างบอกว่าผ่านแล้ว แต่ต้องจ่าย “ค่าประกันระบบ” 1,000 บาทก่อนเริ่มงาน และจะคืนพร้อมเงินเดือน`,c:["จ่าย เพราะจำนวนไม่สูงและรับรองว่าจะคืน","ขอสัญญาจ้างก่อน แล้วจ่ายผ่านบัญชีบริษัทเท่านั้น","ปฏิเสธการจ่ายและตรวจสอบบริษัท/ประกาศงานจากแหล่งทางการก่อน","ขอทดลองทำงาน 1 วัน หากได้เงินค่อยจ่าย"],a:2,f:`การให้ผู้สมัครโอนเงินก่อนเพื่อแลกกับการได้งาน เป็นสัญญาณอันตราย แม้จะเปลี่ยนชื่อเป็นค่าประกัน ค่าระบบ หรือค่าปลดล็อก`,`r:`อย่าโอนเงินเพื่อให้ได้งาน ตรวจสอบบริษัทและช่องทางรับสมัครจากแหล่งที่เป็นทางการ`},
+{cat:"PARCEL SCAM",q:`SMS แจ้งว่า “พัสดุของคุณจัดส่งไม่ได้เพราะที่อยู่ไม่ครบ กรุณาอัปเดตภายในวันนี้ มิฉะนั้นพัสดุจะถูกส่งคืน” พร้อมลิงก์ให้กรอกข้อมูลและบัตร`,c:["กรอกเฉพาะชื่อกับที่อยู่ เพราะไม่ใช่ข้อมูลลับ","เข้าเว็บไซต์/แอปบริษัทขนส่งด้วยตัวเองเพื่อตรวจสอบเลขพัสดุ","กดลิงก์แต่ไม่กรอกข้อมูลบัตร","ส่งลิงก์ให้เพื่อนลองเปิดก่อน"],a:1,f:`ลิงก์อาจพาไปเว็บไซต์ปลอมตั้งแต่แรก แม้ไม่กรอกบัตรก็ยังอาจเปิดเผยข้อมูลสำคัญได้`,`r:`ตรวจสอบพัสดุผ่านแอปหรือเว็บไซต์ทางการที่คุณเปิดเอง`},
+{cat:"INVESTMENT",q:`คนรู้จักส่ง Screenshot กำไรจากการลงทุนเดือนละ 18% และบอกว่า “รอบนี้ขั้นต่ำ 5,000 เดี๋ยวฉันสอนให้”`,c:["ลงทุน 5,000 เพราะเป็นคนรู้จัก","ขอ Screenshot เพิ่มเพื่อพิสูจน์ว่ากำไรจริง","ตรวจสอบบริษัท ใบอนุญาต และข้อมูลการลงทุนจากแหล่งทางการก่อนโอน","ทดลองโอน 500 ก่อน ถอนได้ค่อยเพิ่ม"],a:2,f:`Screenshot ผลกำไรไม่ได้พิสูจน์ว่าการลงทุนถูกต้อง และการทดลองโอนจำนวนน้อยก็ไม่รับประกันความปลอดภัย`,`r:`ตรวจสอบผู้ให้บริการและใบอนุญาตจากหน่วยงานกำกับก่อนลงทุน`},
+{cat:"IMPERSONATION",q:`LINE ใช้ชื่อและรูปอาจารย์ของคุณ “อาจารย์อยู่ในประชุม ฝากซื้อบัตรของขวัญออนไลน์ 3 ใบก่อน เดี๋ยวโอนคืน”`,c:["ซื้อให้ก่อน เพราะเป็นอาจารย์","โทรหาอาจารย์ด้วยเบอร์ที่มีอยู่เดิมเพื่อยืนยัน","ถามรายละเอียดเพิ่มใน LINE","ขอให้อาจารย์ส่งบัตรประชาชนเพื่อยืนยัน"],a:1,f:`บัญชีอาจถูกยึด หรือคนร้ายอาจใช้ชื่อและรูปของบุคคลจริง การยืนยันผ่านช่องทางเดิมที่คุณรู้จักช่วยแยกตัวจริงออกจากผู้แอบอ้าง`,`r:`โทรหรือพบผู้ส่งผ่านช่องทางที่มีอยู่เดิม อย่าใช้ช่องทางใหม่ที่น่าสงสัย`},
+{cat:"OTP THEFT",q:`มีสายอ้างเป็นธนาคาร “มีคนพยายามเข้าบัญชี ระบบจะส่ง OTP มาให้ กรุณาแจ้งรหัสเพื่อยกเลิกรายการ”`,c:["แจ้ง OTP เพราะอีกฝ่ายเป็นเจ้าหน้าที่","แจ้งเฉพาะตัวเลข 3 ตัวแรก","วางสายและติดต่อธนาคารผ่านช่องทางทางการด้วยตัวเอง","ขอชื่อเจ้าหน้าที่ก่อนแล้วจึงแจ้ง OTP"],a:2,f:`OTP ใช้ยืนยันการเข้าสู่ระบบหรือทำรายการ การขอ OTP ทางโทรศัพท์เป็นสัญญาณอันตราย`,`r:`อย่าบอกรหัส OTP และติดต่อธนาคารด้วยช่องทางที่คุณเป็นผู้เปิดเอง`},
+{cat:"ACCOUNT TAKEOVER",q:`เพื่อนสนิทส่งข้อความจากบัญชีใหม่ขอยืมเงิน บอกว่าโทรศัพท์เครื่องเดิมพัง และเล่าเรื่องส่วนตัวที่ดูเหมือนรู้จริง`,c:["โอนให้เพราะเป็นเพื่อนสนิท","ถามคำถามส่วนตัวที่มีแค่เพื่อนรู้","โทรหาเพื่อนผ่านเบอร์เดิมเพื่อยืนยัน","ให้เพื่อนส่งรูปบัตรประชาชนมา"],a:2,f:`รายละเอียดที่คนร้ายรู้จริงไม่ได้พิสูจน์ว่าเป็นเจ้าของบัญชี การยืนยันผ่านช่องทางเดิมเป็นวิธีที่แข็งแรงกว่า`,`r:`ใช้เบอร์เดิมหรือช่องทางอื่นที่มีอยู่ก่อนแล้วเพื่อยืนยันตัวตน`},
+{cat:"QR SCAM",q:`ร้านค้าติด QR ใหม่พร้อมข้อความ “สแกนเพื่อรับส่วนลด 20%” แต่ QR ถูกแปะทับบนสติกเกอร์เดิม`,c:["สแกนทันทีเพราะเป็น QR ของร้าน","ถ่ายรูป QR ไว้แล้วค่อยสแกนที่บ้าน","ถามพนักงานและตรวจสอบว่าปลายทางเป็นบัญชี/เว็บไซต์ของร้านจริงก่อนจ่าย","ให้เพื่อนสแกนแทนเพราะถ้าอันตรายเพื่อนจะรับความเสี่ยง"],a:2,f:`QR ไม่ได้บอกปลายทางด้วยตัวเอง และอาจถูกเปลี่ยนให้พาไปเว็บปลอมหรือบัญชีคนร้าย`,`r:`ตรวจสอบชื่อผู้รับเงินและ URL/บัญชีปลายทางก่อนยืนยันทุกครั้ง`},
+{cat:"ONLINE SHOPPING",q:`ร้านออนไลน์ราคาถูกกว่าตลาด 70% รีวิวหลายร้อยรายการ แต่ร้านเร่งว่า “เหลือ 2 ชิ้น โอนภายใน 5 นาทีเท่านั้น”`,c:["โอนทันทีเพราะของใกล้หมด","ขอให้ร้านส่งเลขบัตรประชาชนเพื่อยืนยัน","ตรวจสอบประวัติร้าน เงื่อนไขชำระเงิน และใช้ช่องทางคุ้มครองผู้ซื้อถ้ามี","ขอส่วนลดเพิ่มเพื่อทดสอบว่าร้านยอมไหม"],a:2,f:`ราคาผิดปกติและแรงกดดันเรื่องเวลาทำให้ผู้ซื้อข้ามขั้นตอนตรวจสอบ รีวิวก็อาจถูกปลอมหรือปั่นได้`,`r:`ตรวจสอบหลายแหล่งและเลือกวิธีชำระเงินที่มีระบบคุ้มครองผู้ซื้อ`},
+{cat:"PUBLIC WI-FI",q:`คุณอยู่สนามบิน พบ Wi‑Fi ชื่อเหมือนสนามบินและมีสัญญาณแรงกว่าเครือข่ายอื่น`,c:["เชื่อมต่อเพราะชื่อเครือข่ายตรงกับสถานที่","ใช้ Wi‑Fi นั้นทำธุรกรรมธนาคารได้ถ้าเว็บมี HTTPS","สอบถามชื่อเครือข่ายทางการกับเจ้าหน้าที่ และหลีกเลี่ยงธุรกรรมสำคัญบนเครือข่ายที่ไม่แน่ใจ","ปิด Bluetooth แล้วใช้ได้อย่างปลอดภัย"],a:2,f:`ชื่อ Wi‑Fi สามารถถูกตั้งให้เลียนแบบเครือข่ายจริงได้ และเครือข่ายสาธารณะเพิ่มความเสี่ยงในการสื่อสาร`,`r:`ยืนยันชื่อเครือข่ายกับผู้ให้บริการ และใช้เครือข่ายมือถือเมื่อทำธุรกรรมสำคัญ`},
+{cat:"FAKE PROMOTION",q:`คุณได้รับอีเมล “คุณได้รับรางวัล iPhone 17” ทั้งที่จำไม่ได้ว่าเคยร่วมกิจกรรม มีลิงก์ให้จ่ายค่าจัดส่ง 99 บาท`,c:["จ่าย 99 บาทเพราะเป็นค่าจัดส่งเล็กน้อย","คลิกลิงก์เพื่อดูว่ารางวัลเป็นของจริงไหม","ตรวจสอบว่าคุณเคยเข้าร่วมกิจกรรมจริงหรือไม่และติดต่อผู้จัดผ่านช่องทางทางการ","ส่งข้อมูลที่อยู่ให้ก่อน แต่ยังไม่จ่าย"],a:2,f:`รางวัลที่คุณไม่เคยสมัครและต้องจ่ายเงินเพื่อรับ เป็นรูปแบบที่ใช้ล่อให้เหยื่อเข้าสู่กระบวนการหลอกลวง`,`r:`อย่าจ่ายเงินหรือให้ข้อมูลเพียงเพราะได้รับข้อความรางวัล ตรวจสอบผู้จัดจากช่องทางทางการ`},
+{cat:"SOCIAL ENGINEERING",q:`คนโทรอ้างเป็นฝ่าย IT ของมหาวิทยาลัย บอกว่าบัญชีคุณมีปัญหาและต้อง “ยืนยันตัวตน” โดยให้ติดตั้งแอปรีโมตหน้าจอ`,c:["ติดตั้ง เพราะเขารู้ชื่อและรหัสนักศึกษา","ติดตั้งเฉพาะแอปจาก App Store/Play Store","ขอชื่อและติดต่อฝ่าย IT ผ่านเว็บไซต์/เบอร์ทางการด้วยตัวเองก่อน","ให้สิทธิ์ดูหน้าจอชั่วคราวแล้วถอนแอปทีหลัง"],a:2,f:`แอปรีโมตสามารถทำให้คนอื่นควบคุมหรือมองเห็นอุปกรณ์ได้ การรู้ข้อมูลบางส่วนของคุณไม่ได้พิสูจน์ตัวตนของผู้โทร`,`r:`หยุดการสนทนาและติดต่อหน่วยงานผ่านช่องทางที่ค้นหาเอง`},
+{cat:"MONEY MULE",q:`มีคนเสนอ “งานรับโอนเงิน” ให้คุณใช้บัญชีรับเงินแล้วโอนต่อ ได้ค่าจ้าง 500 บาท/ครั้ง โดยบอกว่าเป็นงานธุรกรรมต่างประเทศ`,c:["ทำได้ถ้าไม่ต้องเปิดเผยรหัสผ่าน","ทำเฉพาะยอดเล็ก ๆ ก่อน","ปฏิเสธและไม่ให้บัญชีรับโอนเงินแทนผู้อื่น","ขอให้คู่สัญญาส่งสำเนาบัตรประชาชนมาก่อน"],a:2,f:`การให้ใช้บัญชีรับและโอนเงินแทนผู้อื่นอาจเชื่อมโยงกับบัญชีม้าหรือเงินที่มาจากการกระทำผิด`,`r:`อย่าให้บัญชีหรือช่องทางการเงินของตนรับโอนแทนคนอื่นโดยไม่มีเหตุผลทางธุรกิจที่ตรวจสอบได้`},
+{cat:"FAKE BANK APP",q:`คุณค้นหาแอปธนาคารในเว็บแล้วพบไฟล์ APK ที่อ้างว่าเป็น “เวอร์ชันอัปเดต” และเว็บบอกว่า Play Store กำลังปิดปรับปรุง`,c:["ติดตั้งเพราะเป็นไฟล์อัปเดต","ติดตั้งบนเครื่องสำรองเพื่อทดลอง","ไม่ติดตั้ง และดาวน์โหลดแอปผ่านช่องทางทางการของธนาคาร/สโตร์เท่านั้น","ส่งไฟล์ให้เพื่อนตรวจสอบก่อน"],a:2,f:`ไฟล์ติดตั้งจากแหล่งไม่รู้จักอาจถูกดัดแปลงเพื่อขโมยข้อมูลหรือควบคุมอุปกรณ์`,`r:`ใช้ App Store/Google Play หรือเว็บไซต์ทางการของผู้ให้บริการเท่านั้น`},
+{cat:"FAKE SUPPORT",q:`มีโฆษณา “Apple/Google Support” ขึ้นตอนค้นหาเบอร์ช่วยเหลือ และขอให้คุณติดตั้งโปรแกรมเพื่อ “แก้เครื่องติดไวรัส”`,c:["โทรตามเบอร์โฆษณาเพราะขึ้นเป็นผลค้นหาแรก","ติดตั้งโปรแกรมเพราะเจ้าหน้าที่แนะนำ","ปิดโฆษณาและเข้าเว็บไซต์ทางการเพื่อหา Support ด้วยตัวเอง","บอกหมายเลขบัตรเพื่อให้เจ้าหน้าที่ยืนยันบัญชี"],a:2,f:`โฆษณาในผลค้นหาไม่ได้แปลว่าเป็นหน่วยงานจริง คนร้ายใช้โฆษณาเพื่อพาเหยื่อไปยังช่องทางปลอม`,`r:`เข้าเว็บไซต์ทางการด้วยตัวเองและใช้ช่องทาง Support ที่ระบุไว้ที่นั่น`},
+{cat:"DEEPFAKE / VOICE",q:`คุณได้รับเสียงจากคนในครอบครัวผ่านแชตว่า “รถเสีย ต้องโอนเงินด่วน ห้ามโทรกลับเพราะแบตใกล้หมด” เสียงเหมือนมาก`,c:["โอนทันทีเพราะจำเสียงได้","ถามคำถามส่วนตัวในแชต","โทรกลับผ่านเบอร์เดิมหรือยืนยันกับคนอื่นในครอบครัวก่อนโอน","ขอคลิปเสียงเพิ่ม"],a:2,f:`เสียงและข้อความสามารถถูกปลอมแปลงหรือสร้างด้วย AI ได้ การยืนยันผ่านช่องทางเดิมที่เชื่อถือได้ช่วยลดความเสี่ยง`,`r:`อย่าตัดสินใจจากเสียงเพียงอย่างเดียว โดยเฉพาะเมื่อมีแรงกดดันให้โอนเงินทันที`},
+{cat:"DATA HARVESTING",q:`แบบสอบถามออนไลน์แจกคูปองฟรี ขอชื่อ เบอร์ วันเกิด ที่อยู่ และรูปบัตรประชาชน โดยบอกว่า “ใช้เพื่อยืนยันผู้รับเท่านั้น”`,c:["กรอกเพราะได้คูปองฟรี","กรอกเฉพาะข้อมูลที่ไม่ใช่รหัสผ่าน","หยุดและพิจารณาว่าข้อมูลที่ขอจำเป็นกับรางวัลจริงหรือไม่ ก่อนให้ข้อมูล","ใช้ข้อมูลของคนอื่นกรอกแทน"],a:2,f:`การเก็บข้อมูลเกินความจำเป็นอาจนำไปใช้แอบอ้างตัวตนหรือหลอกต่อยอดได้`,`r:`ให้ข้อมูลเท่าที่จำเป็น และหลีกเลี่ยงการส่งเอกสารสำคัญให้แหล่งที่ตรวจสอบไม่ได้`},
+{cat:"ACCOUNT RECOVERY",q:`อีเมลแจ้งว่า “มีคนเปลี่ยนรหัสผ่านบัญชีคุณ” พร้อมปุ่ม Reset Password คุณไม่แน่ใจว่าอีเมลจริงหรือปลอม`,c:["กดปุ่มเพื่อรีเซ็ตทันที","ตอบกลับอีเมลเพื่อยืนยันตัวตน","เปิดเว็บไซต์/แอปของบริการนั้นเอง แล้วตรวจสอบความปลอดภัยจากในบัญชี","ส่ง Screenshot อีเมลให้ผู้ส่งดู"],a:2,f:`ปุ่มในอีเมลอาจพาไปเว็บไซต์ปลอม การเข้าเว็บไซต์ด้วยตัวเองลดความเสี่ยงจากลิงก์ phishing`,`r:`อย่าคลิกลิงก์ในอีเมลที่สงสัย ให้เปิดบริการนั้นเองและตรวจสอบจากบัญชี`},
+{cat:"PRESSURE TACTIC",q:`ผู้ขายออนไลน์แจ้งว่า “ถ้าไม่โอนภายใน 3 นาที ระบบจะส่งข้อมูลคุณให้ตำรวจ เพราะคุณจองสินค้าแล้ว” และส่งภาพบัตรประชาชนมาให้`,c:["โอนเพื่อป้องกันปัญหากฎหมาย","ขอให้ผู้ขายลดค่าปรับแล้วค่อยโอน","หยุดการสนทนา เก็บหลักฐาน และตรวจสอบแพลตฟอร์ม/ผู้ขายผ่านช่องทางทางการ","ส่งบัตรประชาชนของตัวเองเพื่อพิสูจน์ว่าไม่ได้โกง"],a:2,f:`การข่มขู่และสร้างความเร่งด่วนเป็นเทคนิคกดดันให้เหยื่อตัดสินใจเร็ว ภาพเอกสารก็สามารถปลอมแปลงได้`,`r:`อย่าโอนเงินเพราะถูกข่มขู่ เก็บหลักฐานและติดต่อแพลตฟอร์มหรือหน่วยงานที่เกี่ยวข้องผ่านช่องทางทางการ`}
+];
+
+let idx=0, hp=5, score=0, correct=0, wrong=0, answered=false;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active')}
+function render(){
+  const q=questions[idx];
+  $('questionCount').textContent=`QUESTION ${String(idx+1).padStart(2,'0')} / ${questions.length}`;
+  $('progressBar').style.width=`${((idx+1)/questions.length)*100}%`;
+  $('score').textContent=String(Math.max(0,score)).padStart(5,'0');
+  $('hp').textContent='❤️'.repeat(hp)+'🖤'.repeat(5-hp);
+  $('category').textContent=q.cat;
+  $('question').textContent=q.q;
+  $('bearSpeech').textContent=idx%3===0?"เลือกให้ดี...":idx%3===1?"แน่ใจนะ?":"กับดักอยู่ตรงไหน?";
+  $('choices').innerHTML=q.c.map((x,i)=>`<button class="choice" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${x}</button>`).join('');
+  document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>answer(+b.dataset.i));
+  answered=false;
+}
+function answer(choice){
+  if(answered)return; answered=true;
+  const q=questions[idx], buttons=document.querySelectorAll('.choice');
+  buttons.forEach(b=>b.disabled=true);
+  buttons[q.a].classList.add('correct');
+  const isCorrect=choice===q.a;
+  if(!isCorrect)buttons[choice].classList.add('wrong');
+  const battle=$('battle'), bear=$('bear'), player=$('player');
+  if(isCorrect){
+    score+=500; correct++;
+    bear.classList.add('attack-bear'); battle.classList.add('flash');
+    setTimeout(()=>{bear.classList.remove('attack-bear');battle.classList.remove('flash');showFeedback(true)},500);
+  }else{
+    score=Math.max(0,score-100); wrong++; hp=Math.max(0,hp-1);
+    player.classList.add('attack-player'); battle.classList.add('shake','flash');
+    setTimeout(()=>{player.classList.remove('attack-player');battle.classList.remove('shake','flash');showFeedback(false)},550);
+  }
+}
+function showFeedback(ok){
+  const q=questions[idx];
+  $('feedbackScreen').classList.toggle('wrong',!ok);
+  $('feedbackIcon').textContent=ok?'✓':'×';
+  $('feedbackLabel').textContent=ok?'CORRECT — YOU ESCAPED':'WRONG — YOU GOT TRAPPED';
+  $('feedbackTitle').textContent=ok?'+500  หลบกับดักได้!':'-100  หมีหลอกสำเร็จ';
+  $('feedbackText').textContent=q.f;
+  $('realLife').textContent=q.r;
+  show('feedbackScreen');
+}
+$('startBtn').onclick=()=>{idx=0;hp=5;score=0;correct=0;wrong=0;render();show('gameScreen')};
+$('nextBtn').onclick=()=>{
+  idx++;
+  if(idx>=questions.length || hp<=0){result();}else{render();show('gameScreen')}
+};
+function result(){
+  $('finalScore').textContent=Math.max(0,score).toLocaleString();
+  $('correctCount').textContent=correct;
+  $('wrongCount').textContent=wrong;
+  $('finalHp').textContent=hp;
+  let title,msg;
+  const rate=correct/questions.length;
+  if(hp===0){title="THE BEAR GOT YOU";msg="คุณเสีย HP หมดแล้ว ลองเล่นอีกครั้งและจับสัญญาณหลอกให้เร็วกว่านี้";}
+  else if(rate>=.85){title="TRAP MASTER";msg="ยอดเยี่ยม คุณอ่านสัญญาณอันตรายได้ดีและไม่ปล่อยให้ความเร่งรีบควบคุมการตัดสินใจ";}
+  else if(rate>=.65){title="SMART SURVIVOR";msg="คุณรอดจากกับดักส่วนใหญ่ได้ แต่ยังมีบางสถานการณ์ที่ควรตรวจสอบให้รอบคอบขึ้น";}
+  else{title="NEED MORE AWARENESS";msg="มิจฉาชีพใช้หลายเทคนิคมากกว่าที่เห็น ลองเล่นอีกครั้งเพื่อฝึกการหยุด–ตรวจสอบ–ยืนยัน";}
+  $('resultTitle').textContent=title;$('resultMessage').textContent=msg;show('resultScreen');
+}
+$('restartBtn').onclick=()=>{$('startBtn').click()};
+
+</script>
+</body>
+</html>
