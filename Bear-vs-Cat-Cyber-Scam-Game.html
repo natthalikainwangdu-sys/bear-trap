@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bear vs Cat — Cyber Scam Battle</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#090b0e;--panel:#12161b;--line:#29313a;--lime:#c8ff22;--red:#ff4058;--text:#f4f6f8;--muted:#aab3bd}
+body{margin:0;background:radial-gradient(circle at 50% 0,#1b2027 0,#090b0e 52%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button{font:inherit}
+#app{min-height:100vh;display:flex;justify-content:center;padding:20px}
+.screen{width:min(980px,100%);display:flex;flex-direction:column;gap:16px}
+.hidden{display:none!important}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{font-weight:900;letter-spacing:2px}.brand span{color:var(--lime)}
+.badge{border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:var(--muted);font-size:13px}
+.hero,.panel{background:rgba(18,22,27,.94);border:1px solid var(--line);border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.hero{padding:28px;text-align:center}
+.eyebrow{color:var(--lime);font-weight:900;letter-spacing:4px;font-size:12px}
+h1{font-size:clamp(42px,10vw,82px);line-height:.9;margin:18px 0 10px;font-weight:1000}
+h1 span{color:var(--lime)}
+.subtitle{color:var(--muted);font-size:17px}
+.startbox{margin:24px auto 0;max-width:680px;padding:22px;border:1px solid var(--line);border-radius:18px;background:#0e1216}
+.rules{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:16px 0;color:#dfe4e8}
+.rule{padding:9px 12px;border-radius:10px;background:#171c22}
+.primary{background:var(--lime);color:#090b0e;border:0;border-radius:13px;padding:15px 24px;font-weight:950;cursor:pointer;box-shadow:0 0 25px rgba(200,255,34,.12)}
+.primary:active,.choice:active{transform:scale(.98)}
+.battle{padding:16px}
+.stats{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.stat{background:#0e1216;border:1px solid var(--line);padding:12px 14px;border-radius:14px}
+.stat.right{text-align:right}.label{color:var(--muted);font-size:12px}.value{font-size:23px;font-weight:900}
+.hpbar{height:9px;background:#252b32;border-radius:99px;overflow:hidden;margin-top:7px}.hpfill{height:100%;width:100%;background:var(--lime);transition:.35s}
+.vs{font-weight:1000;color:var(--muted)}
+.arena{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
+.fighter{min-height:150px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(180deg,#171c22,#0d1115);display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;overflow:hidden}
+.char{font-size:80px;line-height:1;filter:drop-shadow(0 10px 12px rgba(0,0,0,.35));transition:.25s}
+.name{font-weight:900;margin-top:7px}.role{color:var(--muted);font-size:12px}
+.question{padding:20px}
+.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:12px}
+.qtext{font-size:clamp(20px,4vw,30px);font-weight:850;line-height:1.35;margin:0 0 18px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.choice{background:#171c22;color:var(--text);border:1px solid #303944;border-radius:14px;padding:16px;text-align:left;cursor:pointer;min-height:74px;transition:.15s}
+.choice:hover{border-color:#66727e;background:#1b2128}
+.choice:disabled{cursor:default;opacity:.95}
+.choice.correct{border-color:var(--lime);background:rgba(200,255,34,.1)}
+.choice.wrong{border-color:var(--red);background:rgba(255,64,88,.1)}
+.feedback{padding:20px}.feedback h3{margin-top:0}.feedback .why{color:#dfe4e8;line-height:1.65}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.tag{font-size:12px;border:1px solid #38414c;border-radius:999px;padding:5px 9px;color:#cbd2d8}
+.next{margin-top:14px}
+.result{text-align:center;padding:30px}.scorebig{font-size:64px;font-weight:1000;color:var(--lime);margin:5px}
+.shake{animation:shake .38s}.hit{animation:hit .42s}.flash{animation:flash .42s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(6px)}}
+@keyframes hit{0%{transform:scale(1)}45%{transform:scale(1.22) rotate(-5deg)}100%{transform:scale(1)}}
+@keyframes flash{0%,100%{filter:none}45%{filter:brightness(2) saturate(1.8) sepia(1) hue-rotate(315deg)}}
+.small{font-size:13px;color:var(--muted);line-height:1.6}
+@media(max-width:680px){
+ #app{padding:10px}.hero,.panel{border-radius:18px}.hero{padding:22px 14px}
+ .choices{grid-template-columns:1fr}.arena{grid-template-columns:1fr 1fr}.fighter{min-height:130px}.char{font-size:64px}
+ .question{padding:16px}.stats{grid-template-columns:1fr 1fr}.vs{display:none}.stat.right{text-align:left}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="start" class="screen">
+    <div class="topbar"><div class="brand">CYBER <span>AWARENESS</span></div><div class="badge">12 REAL STUDENT SCENARIOS</div></div>
+    <div class="hero">
+      <div class="eyebrow">SCAMMER BATTLE</div>
+      <h1>BEAR <span>VS</span> CAT</h1>
+      <div class="subtitle">รู้ทันกลลวง ก่อนเงิน ข้อมูล หรือบัญชีจะตกเป็นเหยื่อ</div>
+      <div class="startbox">
+        <div style="font-size:48px">🐻 ⚔️ 🐱</div>
+        <p><b>น้องหมี = ผู้เล่น</b> &nbsp; vs &nbsp; <b>น้องแมว = Scammer</b></p>
+        <div class="rules">
+          <div class="rule">❤️ 5 HP</div><div class="rule">👊 ถูก +500</div><div class="rule">💥 ผิด -100 / -1 HP</div>
+        </div>
+        <p class="small">โจทย์ออกแบบให้มีหลายตัวเลือกที่ “ดูเหมือนถูก” ต้องจับสัญญาณหลอกและเลือกวิธีตรวจสอบที่ปลอดภัยที่สุด</p>
+        <button class="primary" onclick="startGame()">START BATTLE →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen hidden">
+    <div class="topbar"><div class="brand">BEAR <span>TRAP</span></div><div class="badge" id="progress">1 / 12</div></div>
+    <div class="panel battle">
+      <div class="stats">
+        <div class="stat"><div class="label">🐻 น้องหมี — HP</div><div class="value" id="playerHp">❤️❤️❤️❤️❤️</div><div class="hpbar"><div id="playerFill" class="hpfill"></div></div></div>
+        <div class="vs">VS</div>
+        <div class="stat right"><div class="label">⚡ SCORE</div><div class="value" id="score">0</div><div class="small" id="combo">Combo ×1</div></div>
+      </div>
+      <div class="arena">
+        <div id="bearBox" class="fighter"><div id="bear" class="char">🐻</div><div class="name">น้องหมี</div><div class="role">PLAYER</div></div>
+        <div id="catBox" class="fighter"><div id="cat" class="char">🐱</div><div class="name">น้องแมว</div><div class="role">SCAMMER</div></div>
+      </div>
+      <div id="questionPanel" class="question">
+        <div class="meta"><span id="category">CATEGORY</span><span id="qnum">สถานการณ์ 1</span></div>
+        <p id="questionText" class="qtext"></p>
+        <div id="choices" class="choices"></div>
+      </div>
+      <div id="feedback" class="feedback hidden">
+        <h3 id="feedbackTitle"></h3>
+        <div id="tags" class="tags"></div>
+        <div id="feedbackText" class="why"></div>
+        <button class="primary next" id="nextBtn" onclick="nextQuestion()">ไปสถานการณ์ถัดไป →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="screen hidden">
+    <div class="hero result">
+      <div style="font-size:70px">🐻 🏆 🐱</div>
+      <div class="eyebrow">BATTLE COMPLETE</div>
+      <h2 style="font-size:34px;margin:12px 0">ผลการต่อสู้</h2>
+      <div class="scorebig" id="finalScore">0</div>
+      <div id="finalText"></div>
+      <div class="rules" style="margin-top:20px"><div class="rule" id="correctCount">ถูก 0/12</div><div class="rule" id="hpRemain">เหลือ 0 HP</div></div>
+      <button class="primary" onclick="startGame()">เล่นอีกครั้ง ↻</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const questions = [
+{cat:"หอพัก / เงินมัดจำ",q:"คุณพบประกาศหอพักใกล้มหาวิทยาลัย ราคาดีมาก เจ้าของอ้างว่ามีคนจองหลายรายแล้ว และขอให้โอน “ค่ามัดจำเพื่อกันห้อง” ภายใน 15 นาที มิฉะนั้นจะปล่อยให้คนอื่น คุณควรทำอย่างไร?",a:["โอนมัดจำทันที แต่ขอให้ส่งบัตรประชาชนเจ้าของหอมาเป็นหลักฐาน","ขอเลขบัญชีแล้วค้นชื่อบัญชีในโซเชียลก่อนโอน","หยุดการโอน ตรวจสอบตัวตน/สถานที่/ช่องทางติดต่อจากแหล่งอิสระ และนัดดูห้องหรือยืนยันกับเจ้าของสถานที่ก่อน","ขอส่วนลดเพิ่ม เพราะถ้าเป็นมิจฉาชีพมักจะไม่ยอมลดราคา"],why:"ตัวเลือกที่ปลอดภัยที่สุดคือการหยุดแรงกดดันแล้วตรวจสอบจากช่องทางที่ไม่ได้มาจากผู้ขายเอง ความรีบ + ราคาดีผิดปกติ + เงินมัดจำก่อนพบตัวจริง เป็นชุดสัญญาณที่พบบ่อยในมิจฉาชีพ ความรู้สึกว่า “ต้องรีบ ไม่งั้นเสียโอกาส” คือ FOMO ที่ถูกสร้างขึ้นเพื่อให้คุณตัดสินใจก่อนตรวจสอบ",tags:["FOMO","ราคาล่อใจ","เร่งให้โอน"]},
+{cat:"งาน Freelance",q:"มีคนรับสมัครงานแปลเอกสารผ่านแชต เสนอค่าตอบแทนสูงกว่าตลาดและให้เริ่มงานทันที แต่ก่อนรับงานต้องจ่าย “ค่าปลดล็อกระบบ/ค่าประกันไฟล์” 1,500 บาท คุณควรเลือกข้อใด?",a:["จ่ายก่อน เพราะจำนวนไม่สูงเมื่อเทียบกับรายได้ที่จะได้","ขอให้เขาหัก 1,500 บาทจากค่าจ้างรอบแรกแทน","ปฏิเสธการจ่ายเงินล่วงหน้า และตรวจสอบบริษัท/ประกาศงานผ่านเว็บไซต์หรือช่องทางทางการที่ค้นหาเอง","ขอให้ผู้สมัครคนอื่นในกลุ่มยืนยันว่าเคยจ่ายแล้ว"],why:"งานจริงบางแห่งอาจมีค่าใช้จ่ายบางประเภท แต่ “จ่ายก่อนเพื่อปลดล็อกงาน” เป็นสัญญาณเสี่ยงมาก และการให้เหยื่อถามคนในกลุ่มเดียวกันอาจทำให้เกิด social proof ปลอม การตรวจสอบบริษัทจากช่องทางอิสระจึงสำคัญกว่าการดูรีวิวหรือหลักฐานที่ผู้ชักชวนส่งมาเอง",tags:["ค่าปลดล็อก","Social proof","เหยื่อล่อรายได้สูง"]},
+{cat:"ทุนการศึกษา",q:"มีเพจประกาศทุนการศึกษาที่ใช้โลโก้มหาวิทยาลัยถูกต้อง มีแบบฟอร์มสมัคร และแจ้งว่าผู้สมัครต้องส่งสำเนาบัตรประชาชนพร้อมจ่าย “ค่าตรวจเอกสาร” 99 บาท คุณควรทำอย่างไร?",a:["สมัครทันที เพราะจำนวนเงินน้อยและใช้โลโก้มหาวิทยาลัย","ส่งเอกสารก่อน แต่ยังไม่จ่ายจนกว่าจะประกาศผล","ตรวจประกาศทุนจากเว็บไซต์/หน่วยงานมหาวิทยาลัยที่เป็นทางการด้วยตนเอง และอย่าส่งข้อมูลหรือเงินจนกว่าจะยืนยันแหล่งที่มาได้","ถามแอดมินเพจว่ามีใบอนุญาตหรือไม่ แล้วทำตามถ้าตอบได้"],why:"โลโก้ แบบฟอร์ม และภาษาทางการสามารถถูกคัดลอกได้ทั้งหมด การขอข้อมูลส่วนตัวสำคัญพร้อมค่าธรรมเนียมเล็ก ๆ อาจเป็นทั้งการเก็บข้อมูลและทดสอบว่าเหยื่อยอมจ่ายหรือไม่ จุดสำคัญคืออย่าตรวจสอบผ่านช่องทางเดียวกับคนที่กำลังขอข้อมูลจากเรา",tags:["Impersonation","Data harvesting","ค่าธรรมเนียมล่อ"]},
+{cat:"ตั๋วคอนเสิร์ต",q:"เพื่อนส่งโพสต์ขายบัตรคอนเสิร์ตที่บอกว่า “ราคานี้ถูกกว่าหน้างาน 40% มีคนรอซื้ออีก 3 คน” ผู้ขายขอให้โอนเต็มจำนวนและส่ง QR หลังเงินเข้า วิธีใดปลอดภัยที่สุด?",a:["โอนทันทีเพราะเพื่อนเป็นคนส่งโพสต์มา","ขอรูปบัตรพร้อมบัตรประชาชนผู้ขายก่อน แล้วโอน","ตรวจสอบว่าการโอน/การเปลี่ยนชื่อบัตรทำผ่านระบบทางการได้หรือไม่ และใช้ช่องทางซื้อขายที่มีการคุ้มครองผู้ซื้อ","ขอให้ผู้ขายอัดวิดีโอถือบัตรเพื่อพิสูจน์ว่าเป็นของจริง"],why:"หลักฐานรูปหรือวิดีโอสามารถปลอม/นำของคนอื่นมาแสดงได้ และการส่งมาจากเพื่อนไม่ได้แปลว่าเพื่อนตรวจสอบผู้ขายแล้ว แรงกดดันจาก “มีคนรอซื้อ” คือ scarcity + FOMO วิธีที่แข็งแรงกว่าคือใช้ระบบทางการหรือช่องทางที่มี buyer protection",tags:["Scarcity","FOMO","QR ซ้ำ/ปลอม"]},
+{cat:"แก๊งรับกดบัตรคิว",q:"มีคนเสนอรับกดคิวทำพาสปอร์ต/บริการราชการ โดยขอ OTP ที่ส่งเข้ามือถือของคุณเพื่อ “ยืนยันสิทธิ์คิว” พร้อมบอกว่าต้องส่งภายใน 2 นาที คุณควรทำอย่างไร?",a:["ส่ง OTP แต่ปิดบังตัวเลขบางตัว","ส่ง OTP ถ้าชื่อในข้อความตรงกับบริการ","ไม่ให้ OTP และทำรายการด้วยตัวเองผ่านเว็บไซต์/แอปทางการ หากสงสัยให้ติดต่อหน่วยงานโดยใช้เบอร์จากเว็บไซต์ทางการ","ส่ง OTP แล้วรีบเปลี่ยนรหัสผ่านทีหลัง"],why:"OTP เป็นข้อมูลยืนยันตัวตน ไม่ใช่รหัสที่ให้คนอื่นใช้แทนเรา การเร่งเวลา 2 นาทีเป็นการทำให้สมองเข้าสู่โหมดรีบตอบสนองโดยไม่ตรวจสอบ หากอีกฝ่ายต้องการ OTP เพื่อทำสิ่งแทนคุณ ให้ถือเป็นสัญญาณอันตราย",tags:["OTP theft","Time pressure","Account takeover"]},
+{cat:"Phishing มหาวิทยาลัย",q:"ได้รับอีเมลชื่อผู้ส่งคล้ายฝ่าย IT มหาวิทยาลัย แจ้งว่า “บัญชีนักศึกษาจะถูกปิดคืนนี้” และมีปุ่ม Login เพื่อยืนยัน คุณสังเกตว่าอีเมลดูเป็นทางการมาก คุณควรทำอย่างไร?",a:["กดปุ่มแล้วตรวจ URL ก่อนกรอกรหัสผ่าน","ตอบกลับอีเมลเพื่อถามว่าเป็นของจริงหรือไม่","ไม่กดลิงก์จากอีเมล เปิดเว็บไซต์มหาวิทยาลัย/ระบบนักศึกษาจากบุ๊กมาร์กหรือพิมพ์ที่อยู่เอง แล้วตรวจสถานะบัญชีจากช่องทางนั้น","ส่งต่ออีเมลให้เพื่อนช่วยตัดสินใจก่อน"],why:"Phishing ใช้ความกลัวว่าจะเสียสิทธิ์หรือบัญชีถูกปิดเป็นแรงผลักดัน และสามารถปลอมชื่อผู้ส่ง/หน้าตาเว็บให้เหมือนจริงได้ การตรวจ URL หลังคลิกยังเสี่ยงต่อการเปิดหน้าอันตราย วิธีที่ปลอดภัยกว่าคือเริ่มจากช่องทางที่คุณรู้อยู่แล้ว ไม่ใช่ช่องทางที่ข้อความพยายามพาไป",tags:["Phishing","Fear","Fake login"]},
+{cat:"บัญชีม้ากู้เงิน",q:"มีคนเสนองานออนไลน์ “รับเงินเดือนผ่านบัญชีตัวเอง” ให้ค่าจ้าง 3,000 บาท/สัปดาห์ โดยคุณเพียงรับเงินแล้วโอนต่อไปยังบัญชีที่บริษัทแจ้ง อ้างว่าเป็นระบบชำระเงิน คุณควรทำอย่างไร?",a:["ทำได้ถ้าไม่มีการใช้บัตรประชาชนของคุณ","ทำได้ถ้าเขาส่งสัญญาจ้างมาให้เซ็น","ปฏิเสธการใช้บัญชีรับ-โอนเงินแทนผู้อื่น และไม่ให้ข้อมูลธนาคาร หากสนใจงานให้ตรวจสอบบริษัทและลักษณะงานก่อน","ลองทำหนึ่งสัปดาห์ ถ้าไม่มีปัญหาค่อยทำต่อ"],why:"นี่เข้าลักษณะงานที่อาจใช้บัญชีเป็นทางผ่านของเงินผิดกฎหมาย การมีสัญญาหรือการทดลองระยะสั้นไม่ได้รับประกันความถูกต้อง และการ “ลองก่อน” อาจสร้างหลักฐานธุรกรรมที่ทำให้คุณเดือดร้อนได้ หลักคือไม่ให้บัญชีส่วนตัวเป็นตัวกลางให้คนอื่นโดยไม่เข้าใจที่มาของเงิน",tags:["บัญชีม้า","Money mule","รายได้ง่ายเกินจริง"]},
+{cat:"QR Code",q:"ที่ร้านกาแฟมี QR สำหรับจ่ายเงิน แต่คุณเห็นสติกเกอร์อีกชั้นแปะทับ QR เดิมบางส่วน พนักงานบอกว่า “ไม่เป็นไร สแกนได้เลย ทุกคนก็ใช้” คุณควรทำอย่างไร?",a:["สแกนและตรวจชื่อผู้รับหลังจ่ายเสร็จ","สแกนก่อน ถ้ายอดไม่เกิน 500 บาทจึงค่อยจ่าย","หยุดและขอให้ร้านยืนยัน QR/ชื่อบัญชีผู้รับผ่านระบบร้านก่อนชำระ หากยังไม่ชัดให้ใช้ช่องทางอื่น","ถ่ายรูป QR ส่งให้เพื่อนดูว่าเหมือนของจริงไหม"],why:"QR ที่ถูกเปลี่ยนสามารถพาเงินไปยังบัญชีคนอื่นได้ และคำว่า “ทุกคนก็ใช้” เป็น social proof ที่ลดความระวังของเรา การตรวจชื่อผู้รับก่อนกดยืนยันสำคัญกว่าการตรวจหลังเงินออกไปแล้ว",tags:["QR tampering","Social proof","Payment fraud"]},
+{cat:"ร้านค้าออนไลน์",q:"ร้านค้าออนไลน์ขายโน้ตบุ๊กมือสองราคาถูกมาก มีรีวิวจำนวนมากและแอดมินเร่งว่า “โปรหมดใน 5 นาที” แต่ให้โอนเข้าบัญชีบุคคลธรรมดาเท่านั้น คุณควรเลือกอะไร?",a:["โอนครึ่งหนึ่งก่อนเพื่อจองสินค้า","เชื่อรีวิวเพราะมีจำนวนมาก","ตรวจสอบตัวตนร้าน ประวัติการขาย และเลือกช่องทางชำระที่มีการคุ้มครองผู้ซื้อ; หากมีแต่การโอนส่วนตัวและเร่งเวลาให้ถอย","ขอให้แอดมินส่งบัตรประชาชนมาแล้วโอน"],why:"รีวิวจำนวนมากอาจเป็นของปลอม/ซื้อมาได้ และแรงกดดันเรื่องเวลาทำให้เราตัดสินใจโดยใช้ความกลัวพลาดโปรแทนการประเมินความเสี่ยง การโอนเข้าบัญชีบุคคลโดยไม่มี buyer protection เพิ่มความเสียหายหากร้านหายไป",tags:["FOMO","Fake reviews","Buyer protection"]},
+{cat:"Deepfake / คนรู้จัก",q:"มีเสียงคล้ายเพื่อนสนิทโทรมาบอกว่าทำมือถือหาย ต้องใช้เงินด่วน และขอให้โอนเข้าบัญชีใหม่ภายใน 10 นาที เสียงและเรื่องราวเหมือนจริงมาก คุณควรทำอย่างไร?",a:["โอนจำนวนเล็กน้อยเพื่อทดสอบก่อน","ถามคำถามส่วนตัวที่มีแต่เพื่อนรู้แล้วโอนทันทีถ้าตอบถูก","วางสายแล้วติดต่อเพื่อนผ่านเบอร์เดิม/ช่องทางที่มีอยู่เดิม หรือยืนยันตัวตนด้วยวิธีอื่นที่ผู้โทรควบคุมไม่ได้","บันทึกเสียงไว้เป็นหลักฐานแล้วโอน"],why:"เสียงสังเคราะห์และข้อมูลส่วนตัวจากโซเชียลสามารถทำให้เรื่องปลอมดูน่าเชื่อถือขึ้นได้ การใช้ “เบอร์/แชตใหม่ที่ผู้โทรเป็นคนให้” ไม่ใช่การยืนยันที่เป็นอิสระ เทคนิคสำคัญคือ break the loop: หยุดการสนทนา แล้วเริ่มการติดต่อจากช่องทางที่คุณมีอยู่ก่อน",tags:["Deepfake voice","Urgency","Impersonation"]},
+{cat:"บัญชีมหาวิทยาลัยถูกยึด",q:"คุณได้รับข้อความว่า “ฝ่ายทะเบียนพบความผิดปกติ ต้องยืนยันบัญชีภายในวันนี้” ลิงก์พาไปหน้า Login ที่เหมือนระบบมหาวิทยาลัย และหลังกรอกรหัสผ่านมีหน้าขอ OTP คุณควรทำอย่างไร?",a:["กรอก OTP เพราะหน้าเว็บเหมือนจริง","ใช้รหัสผ่านเดียวกับอีเมลเพื่อไม่ให้ลืม","ออกจากหน้าเว็บทันที เปลี่ยนรหัสผ่านผ่านเว็บไซต์ทางการ และติดต่อ IT/มหาวิทยาลัยผ่านช่องทางที่ค้นหาเอง โดยแจ้งว่าอาจมีการกรอกข้อมูลในเว็บปลอม","ปิดหน้าเว็บอย่างเดียวและรอดูว่าจะมีอะไรเกิดขึ้น"],why:"การขอรหัสผ่านแล้วตามด้วย OTP เป็นรูปแบบที่อาจนำไปสู่การยึดบัญชีได้ จุดสำคัญคือเมื่อสงสัยว่ากรอกข้อมูลไปแล้ว อย่าเพียงปิดเว็บ ต้องลดความเสียหายทันที เช่น เปลี่ยนรหัสผ่านจากช่องทางจริงและแจ้งหน่วยงานที่เกี่ยวข้อง",tags:["Credential phishing","OTP","Account takeover"]},
+{cat:"ทุน/แบบสอบถามเก็บข้อมูล",q:"แบบสอบถามชิงทุน/อุปกรณ์ฟรีแชร์ในกลุ่มนักศึกษา ขอชื่อ เบอร์โทร ที่อยู่ สำเนาบัตรประชาชน และข้อมูลบัญชีธนาคาร โดยอ้างว่า “ใช้ตรวจสอบผู้ได้รับสิทธิ์” คุณควรทำอย่างไร?",a:["กรอกทุกช่องเพราะเป็นกิจกรรมของนักศึกษา","ส่งข้อมูลทั้งหมดแต่ใส่ลายน้ำบนบัตรประชาชน","ตรวจว่าผู้จัดคือใครและข้อมูลใดจำเป็นจริง หากแหล่งที่มาไม่ชัดให้ไม่ส่งเอกสารสำคัญ/ข้อมูลธนาคาร และติดต่อหน่วยงานเจ้าของโครงการโดยตรง","ส่งเฉพาะเลขบัญชีเพราะปลอดภัยกว่าสำเนาบัตร"],why:"การขอข้อมูลมากเกินความจำเป็นเป็นสัญญาณของ data harvesting และข้อมูลหลายชิ้นเมื่อรวมกันสามารถใช้สวมรอยได้ แม้โครงการจะอ้างว่าถูกต้อง ก็ควรตรวจสอบตัวตนและวัตถุประสงค์ก่อนให้ข้อมูล โดยเฉพาะเอกสารระบุตัวตนและข้อมูลการเงิน",tags:["Data minimization","Identity theft","Data harvesting"]}
+];
+
+let idx=0,score=0,hp=5,combo=0,answered=false;
+
+function startGame(){
+ idx=0;score=0;hp=5;combo=0;answered=false;
+ document.getElementById('start').classList.add('hidden');
+ document.getElementById('result').classList.add('hidden');
+ document.getElementById('game').classList.remove('hidden');
+ render();
+}
+function render(){
+ const q=questions[idx];
+ answered=false;
+ document.getElementById('progress').textContent=`${idx+1} / ${questions.length}`;
+ document.getElementById('qnum').textContent=`สถานการณ์ ${idx+1}`;
+ document.getElementById('category').textContent=q.cat.toUpperCase();
+ document.getElementById('questionText').textContent=q.q;
+ document.getElementById('feedback').classList.add('hidden');
+ document.getElementById('questionPanel').classList.remove('hidden');
+ document.getElementById('nextBtn').textContent=idx===questions.length-1?"ดูผลคะแนน →":"ไปสถานการณ์ถัดไป →";
+ const box=document.getElementById('choices'); box.innerHTML='';
+ q.opts=q.opts||shuffle(q.a.map((x,i)=>({text:x,correct:i===q.aIndex}))); 
+ // Build from original array; q.a is correct index encoded by storing correct text separately below.
+ box.innerHTML=q.options.map((text,i)=>`<button class="choice" onclick="answer(${i})"><b>${String.fromCharCode(65+i)}.</b> ${text}</button>`).join('');
+ updateStats();
+}
+function shuffle(arr){return arr.sort(()=>Math.random()-.5)}
+function answer(choice){
+ if(answered)return; answered=true;
+ const q=questions[idx];
+ const buttons=[...document.querySelectorAll('.choice')];
+ buttons.forEach(b=>b.disabled=true);
+ const correct=choice===q.correct;
+ buttons[choice].classList.add(correct?'correct':'wrong');
+ if(!correct) buttons[q.correct].classList.add('correct');
+ if(correct){
+   combo++;
+   const mult=combo>=5?2:combo>=3?1.5:1;
+   const gain=Math.round(500*mult); score+=gain;
+   animate('bear','hit'); animate('cat','flash');
+   playSound('hit');
+   showFeedback(true,`ตอบถูก! น้องหมีโจมตีน้องแมว +${gain} คะแนน`,q);
+ }else{
+   combo=0;score-=100;hp=Math.max(0,hp-1);
+   animate('bearBox','shake');animate('bear','flash');animate('cat','hit');
+   playSound('heavy');
+   showFeedback(false,'ตอบผิด! น้องแมวสวนกลับ -100 คะแนน และ -1 HP',q);
+ }
+ updateStats();
+}
+function showFeedback(ok,title,q){
+ document.getElementById('questionPanel').classList.add('hidden');
+ document.getElementById('feedback').classList.remove('hidden');
+ document.getElementById('feedbackTitle').textContent=title;
+ document.getElementById('feedbackTitle').style.color=ok?'var(--lime)':'var(--red)';
+ document.getElementById('tags').innerHTML=q.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+ document.getElementById('feedbackText').innerHTML=`<b>ทำไม?</b><br>${q.why}<br><br><b>จำง่าย:</b> ${ok?'อย่าปล่อยให้ความรีบ ความกลัว หรือราคาถูกแทนที่การตรวจสอบ':'แม้ข้อความ/คน/เว็บจะดูจริง ให้หยุดและตรวจสอบจากช่องทางอิสระก่อน'}`;
+ if(hp<=0) document.getElementById('nextBtn').textContent='HP หมด — ดูผลคะแนน →';
+}
+function nextQuestion(){
+ if(hp<=0 || idx===questions.length-1){finish();return}
+ idx++;render();
+}
+function finish(){
+ document.getElementById('game').classList.add('hidden');
+ document.getElementById('result').classList.remove('hidden');
+ document.getElementById('finalScore').textContent=score;
+ const correct=questions.reduce((n,q,i)=>n+(i<idx+1 && q._correct?1:0),0);
+ document.getElementById('correctCount').textContent=`ตอบถูก ${window.correctTotal||0}/${idx+1}`;
+ document.getElementById('hpRemain').textContent=`เหลือ ${hp} HP`;
+ let text=score>=5000?"ระดับยอดนักจับมิจฉาชีพ 🏆":score>=3000?"ระดับรู้ทันกลโกง 👍":"ยังมีจุดให้ฝึกเพิ่ม — รอบหน้าลองชะลอการตัดสินใจและตรวจสอบจากช่องทางอิสระ";
+ document.getElementById('finalText').innerHTML=`<p style="font-size:18px">${text}</p><p class="small">หลักสำคัญ: เมื่อเจอ “ความรีบ + ความกลัว + ผลตอบแทนสูง + การขอข้อมูล/เงิน” ให้หยุดก่อน แล้วตรวจสอบกับแหล่งที่คุณหาเอง</p>`;
+}
+function updateStats(){
+ document.getElementById('score').textContent=score;
+ document.getElementById('combo').textContent=`Combo ×${combo>=5?2:combo>=3?1.5:1}`;
+ document.getElementById('playerHp').textContent='❤️'.repeat(hp)+'🖤'.repeat(5-hp);
+ document.getElementById('playerFill').style.width=(hp/5*100)+'%';
+}
+function animate(id,cls){
+ const el=document.getElementById(id);el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);
+ setTimeout(()=>el.classList.remove(cls),500);
+}
+function playSound(type){
+ try{
+   const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+   const ac=new C(),now=ac.currentTime;
+   if(type==='hit'){
+     const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.setValueAtTime(180,now);o.frequency.exponentialRampToValueAtTime(70,now+.12);g.gain.setValueAtTime(.22,now);g.gain.exponentialRampToValueAtTime(.001,now+.16);o.connect(g).connect(ac.destination);o.start();o.stop(now+.17);
+   }else{
+     const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(110,now);o.frequency.exponentialRampToValueAtTime(38,now+.28);g.gain.setValueAtTime(.3,now);g.gain.exponentialRampToValueAtTime(.001,now+.32);o.connect(g).connect(ac.destination);o.start();o.stop(now+.33);
+   }
+ }catch(e){}
+}
+</script>
+<script>
+/* Prepare randomized answer choices while preserving the correct index. */
+questions.forEach(q=>{
+ const pairs=q.a.map((text,i)=>({text,correct:i===q.aCorrect}));
+});
+/* The correct answer for each question is the option shown as C in this game. */
+questions.forEach(q=>{
+ q.options=q.a.slice();
+ q.correct=2;
+});
+window.correctTotal=0;
+const oldAnswer=answer;
+answer=function(choice){
+ const before=answered;
+ oldAnswer(choice);
+ if(!before && answered && choice===questions[idx].correct) window.correctTotal++;
+ if(!before && answered) questions[idx]._correct=(choice===questions[idx].correct);
+};
+</script>
+</body>
+</html>
